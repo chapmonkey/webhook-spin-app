@@ -1,0 +1,33 @@
+spin_manifest_version = 2
+
+[application]
+authors = ["Nick Chapman <nick.chapman@thirdfin.co.uk>"]
+description = ""
+name = "webhook-spin-app"
+version = "0.1.0"
+
+[variables]
+db_user = { default = "postgres" }
+db_name = { required = true }
+db_host = { required = true }
+db_port = { default = "5432" }
+db_password = { required = true }
+
+[[trigger.http]]
+route = "/..."
+component = "webhook-spin-app"
+
+[component.webhook-spin-app]
+source = "app.wasm"
+allowed_outbound_hosts = [ "postgres://{{ db_host }}:{{ db_port }}" ]
+
+[component.webhook-spin-app.variables]
+db_user = "{{ db_user }}"
+db_name = "{{ db_name }}"
+db_host = "{{ db_host }}"
+db_port = "{{ db_port }}"
+db_password = "{{ db_password }}"
+
+[component.webhook-spin-app.build]
+command = "componentize-py -w spin-http componentize app -o app.wasm"
+watch = ["*.py", "requirements.txt"]
