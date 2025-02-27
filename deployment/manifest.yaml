@@ -10,6 +10,9 @@ metadata:
   namespace: spin
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      service: postgres
   template:
     metadata:
       labels:
