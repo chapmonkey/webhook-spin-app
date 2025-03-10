@@ -8,3 +8,8 @@ dependencies = [
     "componentize-py==0.16.0",
     "spin-sdk==3.3.0",
 ]
+
+[dependency-groups]
+dev = [
+    "locust>=2.33.1",
+]

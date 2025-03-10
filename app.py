@@ -1,9 +1,9 @@
-import datetime
 import json
+import traceback
 
 from spin_sdk import postgres, variables
 from spin_sdk.http import IncomingHandler, Request, Response
-from spin_sdk.wit.imports.rdbms_types import ParameterValue_Str
+from spin_sdk.wit.imports.rdbms_types import ParameterValue_Str, ParameterValue_Int32
 
 
 class IncomingHandler(IncomingHandler):
@@ -16,34 +16,36 @@ class IncomingHandler(IncomingHandler):
                 json_str = request.body.decode('utf-8')
                 # Create a JSON object representation of the request.body
                 json_object = json.loads(json_str)
+
                 # Access a value in the JSON object
-                webhookEvent = json_object['webhookEvent']
+                transfer_id = json_object['transfer_id']
+                transfer_date = json_object['transfer_date']
+                value = json_object['value']
+                origin = json_object['origin']
+                status = json_object['status']
 
-                if webhookEvent == "jira:issue_updated":
-                    issue = json_object['issue']
-                    issue_key = issue['key']
-                    issue_fields_summary = issue['fields']['summary']
+                db_name = variables.get('db_name')
+                db_host = variables.get('db_host')
+                db_port = variables.get('db_port')
+                db_user = variables.get('db_user')
+                db_password = variables.get('db_password')
 
-                    # Print the variable to console logs
-                    print(f"Received issue update for {issue_key} - {issue_fields_summary}")
+                with postgres.open(f"user={db_user} dbname={db_name} host={db_host} port={db_port} password={db_password}") as db:
+                    if (status == 'CREATED'):
 
-                    issue_comment = f"Webhook event {webhookEvent} received at {datetime.datetime.now()}"
-
-                    db_name = variables.get('db_name')
-                    db_host = variables.get('db_host')
-                    db_port = variables.get('db_port')
-                    db_user = variables.get('db_user')
-                    db_password = variables.get('db_password')
-
-                    with postgres.open(f"user={db_user} dbname={db_name} host={db_host} port={db_port} password={db_password}") as db:
-                        update_count = db.execute("update ifaportal.fct_transfers set last_external_comment = $2 where jira_reference = $1",
-                                                  [ParameterValue_Str(issue_key), ParameterValue_Str(issue_comment)])
+                        update_count = db.execute("insert into public.transfers (transfer_id, transfer_date, \"value\", origin, status) values (($1::TEXT)::UUID, TO_DATE($2, 'YYYY-MM-DD'), $3, $4, $5)",
+                                                  [ParameterValue_Str(transfer_id), ParameterValue_Str(transfer_date), ParameterValue_Int32(value), ParameterValue_Str(origin), ParameterValue_Str(status)] )
+                        print(f"Number of rows inserted {update_count}")
+                    elif status == 'UPDATED':
+                        update_count = db.execute("update public.transfers set transfer_date=TO_DATE($2, 'YYYY-MM-DD'), \"value\"=$3, origin=$4, status=$5 where transfer_id=($1::TEXT)::UUID",
+                                                  [ParameterValue_Str(transfer_id), ParameterValue_Str(transfer_date), ParameterValue_Int32(value), ParameterValue_Str(origin), ParameterValue_Str(status)] )
                         print(f"Number of rows updated {update_count}")
+                    else:
+                        print(f"Unknown status type, {status}")
 
-                else:
-                    print(f"Received event {webhookEvent}")
             except BaseException as e:
                 print(f"Exception whilst handling request {e}")
+                print(traceback.format_exc())
                 return Response(500,
                                 {"content-type": "text/plain"},
                                 bytes(f"Exception whilst handling event", "utf-8"))

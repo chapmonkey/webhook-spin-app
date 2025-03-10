@@ -15,7 +15,7 @@ uv sync
 ## Building and Running
 
 ```
-spin up --build
+SPIN_VARIABLE_DB_NAME=postgres SPIN_VARIABLE_DB_HOST=localhost SPIN_VARIABLE_DB_PASSWORD=password spin up --build
 ```
 
 ## Spin kube
@@ -42,11 +42,25 @@ az acr login -n tfsphoton
 
 Push image to repository
 ```
-spin registry push --build tfsphoton.azurecr.io/portals-transfers-webhook:latest
-```
+spin registry push --build ttl.sh/webhook-spin-app:24h
 
 Deploy using generated manifest (originally generated using the `spin kube scaffold` command)
 ```
-cd deployment/overlay/$ENV
-kustomize build | kubectl -n portal-dev apply -f -
+cd deployment/
+kubectl -n spin apply -f manifest.yaml
+```
+
+Port forward to the service
+```
+kubectl -n spin port-forward svc/webhook-spin-app 3000:80
+```
+
+Curl to test
+```
+curl http://localhost:8080 -d '{"transfer_id": "d55a1306-95c7-44bc-a66d-60dfc4800752", "transfer_date":"2025-03-07", "value": 253644, "origin": "Third Financial", "status": "CREATED"}'
+```
+
+## Locust Performance/Load Test
+```
+uv run locust
 ```

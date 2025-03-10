@@ -12,3 +12,7 @@ wheels/
 # InteliJ
 *.iml
 .idea
+
+# Spin
+*.wasm
+.spin
