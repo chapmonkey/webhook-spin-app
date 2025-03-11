@@ -1,8 +1,7 @@
 spin_manifest_version = 2
 
 [application]
-authors = ["Nick Chapman <nick.chapman@thirdfin.co.uk>"]
-description = ""
+description = "Webhook handling Spin application"
 name = "webhook-spin-app"
 version = "0.1.0"
 
