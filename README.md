@@ -36,6 +36,7 @@ https://www.spinkube.dev/docs/install/
 Push image to repository
 ```
 spin registry push --build ttl.sh/webhook-spin-app:24h
+```
 
 Deploy using generated manifest (originally generated using the `spin kube scaffold` command)
 ```
