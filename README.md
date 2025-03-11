@@ -28,23 +28,10 @@ SPIN_VARIABLE_DB_NAME=postgres SPIN_VARIABLE_DB_HOST=localhost SPIN_VARIABLE_DB_
 
 ### Setup k8s env
 
-Temp fix until nodes have the correct annotation applied automatically.
-This annotation needs re-applying as nodes are cycled.
-```
-kubectl annotate node -l agentpool=usere4asv5  kwasm.sh/kwasm-node=true
-```
-
-Register executors in namespace
-```
-kubectl apply -f https://github.com/spinkube/spin-operator/releases/download/v0.4.0/spin-operator.shim-executor.yaml
-```
+Install Spin kube
+https://www.spinkube.dev/docs/install/
 
 ### Build and deploy
-
-Login to container registry using Azure CLI
-```
-az acr login -n tfsphoton
-```
 
 Push image to repository
 ```
